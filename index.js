@@ -25,6 +25,9 @@ function LogFetcher (opts) {
   assert.equal(typeof opts.secret, 'string', 'opts.secret should be a string')
   assert.equal(typeof opts.bucket, 'string', 'opts.bucket should be a string')
 
+  this._fetchComplete = false;
+  this._lastKey = null;
+  this._fetchingDateIndex = 0;
   this._forwarding = false
   this._destroyed = false
   this._drained = false
@@ -71,8 +74,10 @@ LogFetcher.prototype._forward = function () {
   if (this._prefix) {
     prefix += this._prefix + '/'
   }
-  prefix += this._dates[0]
-  const rs = new S3Lister(this._client, { prefix: prefix })
+  prefix += this._dates[this._fetchingDateIndex]
+  const listerOpts = { prefix: prefix, start: this._lastKey }
+
+  const rs = new S3Lister(this._client, listerOpts)
   var counter = 0
 
   rs.on('data', function (data) {
@@ -85,7 +90,25 @@ LogFetcher.prototype._forward = function () {
       files.push(pumpify(fileStream, gunzip()))
 
       const ended = rs.ended
-      if (ended && (files.length === counter)) streamFiles()
+      if (ended && (files.length === counter)) {
+        if (self._dates.length > 1) {
+          if(counter < 1000) {
+            self._fetchingDateIndex++;
+          }
+          if(self._fetchingDateIndex >= self._dates.length) {
+            self._fetchComplete = true;
+          }
+          self._lastKey = data.Key;
+        }
+        else if (counter === 1000) {
+          self._lastKey = data.Key;
+        }
+        else {
+          self._lastKey = null;
+          self._fetchComplete = true;
+        }
+        streamFiles()
+      }
     })
   })
 
@@ -97,7 +120,12 @@ LogFetcher.prototype._forward = function () {
       self.push(line + eol)
     })
     ts.on('end', function () {
-      self.push(null)
+      if (self._fetchComplete) {
+        self.push(null);
+      }
+      else {
+        self._forward();
+      }
     })
     ts.on('error', function (err) {
       self.emit('error', err)
