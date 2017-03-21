@@ -15,7 +15,8 @@ const opts = cliclopts([
   { name: 'secret', abbr: 's', default: process.env.S3_SECRET_KEY },
   { name: 'bucket', abbr: 'b' },
   { name: 'from', abbr: 'f' },
-  { name: 'until', abbr: 'u' }
+  { name: 'until', abbr: 'u' },
+  { name: 'prefix', abbr: 'p', default: '' }
 ])
 
 const argv = minimist(process.argv.slice(2), opts.options())
