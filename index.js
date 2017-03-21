@@ -124,6 +124,7 @@ LogFetcher.prototype._forward = function () {
         self.push(null);
       }
       else {
+        self._forwarding = false;
         self._forward();
       }
     })
