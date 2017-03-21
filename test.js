@@ -30,6 +30,9 @@ test('creates a stream', function (t) {
     bucket: 'secret-bucket'
   }
   const rs = logFetcher(opts)
+  rs.on('error', function (error) {
+    console.log(error)
+  })
   t.ok(isStream(rs), 'is stream')
 
   rs.pipe(concat(function (buf) {
@@ -49,6 +52,9 @@ test('.destroy() should close the stream', function (t) {
   }
 
   const str = logFetcher(opts)
+  str.on('error', function (error) {
+    console.log(error)
+  })
   t.ok(isStream(str), 'is stream')
   str.destroy()
   process.nextTick(function () {

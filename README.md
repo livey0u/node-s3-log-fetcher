@@ -27,7 +27,8 @@ const rs = logFetcher({
   until: '2015-11-04',
   bucket: 'sydney-my-app-test',
   key: '<S3 key>',
-  secret: '<S3 secret>'
+  secret: '<S3 secret>',
+  prefix: 'dir'
 })
 
 rs.pipe(stdout)
@@ -45,12 +46,15 @@ Options:
   -k, --key       S3 access key, defaults to env.S3_ACCESS_KEY (required)
   -s, --secret    S3 secret key, defaults to env.S3_SECRET_KEY (required)
   -b, --bucket    S3 bucket name (required)
+  -p, --prefix    dirname(all the keys will be prefixed with `"prefixValue" + "/"`)
 
 Examples:
   $ s3-log-fetcher -f 2015-10-03 -u 2015-10-03 \
     -b testbucket  # Fetch logs from S3 for 2015-10-03
   $ s3-log-fetcher -f 2015-10-03 -u 2015-10-13 \
     -b testbucket  # Fetch logs from S3 for 2015-10-03 until 2015-10-13
+  $ s3-log-fetcher -f 2015-10-03 -u 2015-10-03 \
+    -b testbucket -p logs  # Fetch logs from S3 for logs/2015-10-03
 
 Docs: https://github.com/TabDigital/node-s3-log-fetcher
 Bugs: https://github.com/TabDigital/node-s3-log-fetcher/issues
@@ -83,6 +87,7 @@ Create a readable stream for a start and end date. Takes the following opts:
 - __secret (required):__ S3 secret key. Defaults to
   `process.env.S3_SECRET_KEY`.
 - __bucket (required):__ S3 bucket name.
+- __prefix :__ sub folder name.
 
 ## License
 [MIT](https://tldrlegal.com/license/mit-license)

@@ -34,6 +34,7 @@ function LogFetcher (opts) {
     secret: opts.secret,
     bucket: opts.bucket
   })
+  this._prefix = opts.prefix
 
   stream.Readable.call(this, opts)
 }
@@ -66,13 +67,17 @@ LogFetcher.prototype._forward = function () {
 
   const self = this
   const files = []
-  const rs = new S3Lister(this._client, { prefix: this._dates[0] })
+  let prefix = ''
+  if (this._prefix) {
+    prefix += this._prefix + '/'
+  }
+  prefix += this._dates[0]
+  const rs = new S3Lister(this._client, { prefix: prefix })
   var counter = 0
 
   rs.on('data', function (data) {
     if (!data.Size) return
     counter++
-
     self._client.getFile(data.Key, function (err, fileStream) {
       if (err) return self.emit('error', err)
       if (self.ended) return
